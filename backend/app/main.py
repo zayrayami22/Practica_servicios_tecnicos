@@ -1,12 +1,14 @@
 from flask import Flask, jsonify
 from flask_cors import CORS
 from app.routes.login import login_bp
+from app.routes.clientes import clientes_bp
 
 app = Flask(__name__)
 
 CORS(app)
 
 app.register_blueprint(login_bp)
+app.register_blueprint(clientes_bp)
 
 @app.route("/")
 def inicio():

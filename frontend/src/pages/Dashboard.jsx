@@ -1,30 +1,21 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import "../App.css";
 
 function Dashboard() {
   const { usuario, cerrarSesion } = useAuth();
-  const navigate = useNavigate();
-
-  const salir = () => {
-    cerrarSesion();
-    navigate("/");
-  };
 
   return (
     <div className="dashboard">
-      <h1>Servicios Técnicos</h1>
-      <h2>Panel principal</h2>
+      <h1>Dashboard</h1>
 
-      <p>
-        Bienvenido, <strong>{usuario?.username}</strong>
-      </p>
+      <h2>Bienvenido, {usuario?.username}</h2>
 
       <nav>
         <Link to="/dashboard">Inicio</Link>
+        <Link to="/clientes">Clientes</Link>
       </nav>
 
-      <button onClick={salir}>Cerrar sesión</button>
+      <button onClick={cerrarSesion}>Cerrar sesión</button>
     </div>
   );
 }
