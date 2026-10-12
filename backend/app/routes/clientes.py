@@ -211,3 +211,39 @@ def eliminar_cliente(cliente_id):
             cursor.close()
 
         conexion.close()
+
+
+# GET - Catálogo de clientes para el módulo Servicios
+@clientes_bp.route("/api/clientes/catalogo", methods=["GET"])
+def catalogo_clientes():
+    conexion = conectar()
+
+    if conexion is None:
+        return jsonify({
+            "success": False,
+            "message": "Sin conexión a BD"
+        }), 500
+
+    cursor = None
+
+    try:
+        cursor = conexion.cursor(dictionary=True)
+        cursor.execute("SELECT id, nombre FROM cliente ORDER BY nombre")
+        clientes = cursor.fetchall()
+
+        return jsonify({
+            "success": True,
+            "clientes": clientes
+        }), 200
+
+    except Exception as e:
+        print("Error al consultar catálogo de clientes:", e)
+        return jsonify({
+            "success": False,
+            "message": "Error al consultar clientes"
+        }), 500
+
+    finally:
+        if cursor:
+            cursor.close()
+        conexion.close()

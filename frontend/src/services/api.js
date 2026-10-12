@@ -131,3 +131,53 @@ export async function eliminarTecnico(id) {
 
   return { ok: r.ok, datos: await r.json() };
 }
+
+
+// CATÁLOGO DE CLIENTES PARA SERVICIOS
+export async function obtenerClientesCatalogo() {
+  const r = await fetch(`${API_URL}/api/clientes/catalogo`);
+  return { ok: r.ok, datos: await r.json() };
+}
+
+// CATÁLOGO DE TÉCNICOS PARA SERVICIOS
+export async function obtenerTecnicosCatalogo() {
+  const r = await fetch(`${API_URL}/api/tecnicos/catalogo`);
+  return { ok: r.ok, datos: await r.json() };
+}
+
+// OBTENER SERVICIOS
+export async function obtenerServicios() {
+  const r = await fetch(`${API_URL}/api/servicios`);
+  return { ok: r.ok, datos: await r.json() };
+}
+
+// CREAR SERVICIO
+export async function crearServicio(servicio) {
+  const r = await fetch(`${API_URL}/api/servicios`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(servicio)
+  });
+
+  return { ok: r.ok, datos: await r.json() };
+}
+
+// ACTUALIZAR SERVICIO
+export async function actualizarServicio(id, servicio) {
+  const r = await fetch(`${API_URL}/api/servicios/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(servicio)
+  });
+
+  return { ok: r.ok, datos: await r.json() };
+}
+
+// ELIMINAR SERVICIO
+export async function eliminarServicio(id) {
+  const r = await fetch(`${API_URL}/api/servicios/${id}`, {
+    method: "DELETE"
+  });
+
+  return { ok: r.ok, datos: await r.json() };
+}
