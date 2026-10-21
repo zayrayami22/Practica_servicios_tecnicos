@@ -1,4 +1,6 @@
+
 from flask import Blueprint, request, jsonify
+from werkzeug.security import check_password_hash
 from app.config.conexion import conectar
 
 login_bp = Blueprint("login", __name__)
@@ -17,10 +19,16 @@ def login():
     username = datos.get("username")
     password = datos.get("password")
 
-    if not username or not password:
+    if not isinstance(username, str) or not username.strip():
         return jsonify({
             "success": False,
-            "message": "Username y contraseña son obligatorios"
+            "message": "El usuario es obligatorio."
+        }), 400
+
+    if not isinstance(password, str) or not password:
+        return jsonify({
+            "success": False,
+            "message": "La contraseña es obligatoria."
         }), 400
 
     conexion = conectar()
@@ -28,7 +36,7 @@ def login():
     if conexion is None:
         return jsonify({
             "success": False,
-            "message": "No se pudo conectar con la base de datos"
+            "message": "No se pudo conectar con la base de datos."
         }), 500
 
     cursor = None
@@ -37,19 +45,15 @@ def login():
         cursor = conexion.cursor()
 
         consulta = """
-            SELECT username
+            SELECT username, password
             FROM usuario
             WHERE username = %s
-            AND password = %s
         """
 
-        valores = (username, password)
-
-        cursor.execute(consulta, valores)
-
+        cursor.execute(consulta, (username.strip(),))
         usuario = cursor.fetchone()
 
-        if usuario:
+        if usuario and check_password_hash(usuario[1], password):
             return jsonify({
                 "success": True,
                 "message": "Inicio de sesión correcto",
@@ -58,13 +62,16 @@ def login():
 
         return jsonify({
             "success": False,
-            "message": "Usuario o contraseña incorrectos"
+            "message": "Usuario o contraseña incorrectos."
         }), 401
 
-    except Exception as e:
+    except Exception:
+        app_logger = __import__("logging").getLogger(__name__)
+        app_logger.exception("Error interno durante el inicio de sesión")
+
         return jsonify({
             "success": False,
-            "message": f"Error en la consulta: {str(e)}"
+            "message": "Ocurrió un error interno. Intenta nuevamente."
         }), 500
 
     finally:

@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import {
   obtenerServicios,
@@ -9,12 +8,11 @@ import {
   eliminarServicio
 } from "../services/api";
 
-export default function Servicios() {
+function Servicios() {
   const [servicios, setServicios] = useState([]);
   const [clientes, setClientes] = useState([]);
   const [tecnicos, setTecnicos] = useState([]);
   const [mensaje, setMensaje] = useState("");
-  const [tipoMensaje, setTipoMensaje] = useState("info");
   const [editando, setEditando] = useState(null);
   const [cargando, setCargando] = useState(false);
 
@@ -26,12 +24,7 @@ export default function Servicios() {
     fecha: ""
   });
 
-  function mostrarMensaje(texto, tipo = "info") {
-    setMensaje(texto);
-    setTipoMensaje(tipo);
-  }
-
-  async function cargarDatos(mostrarError = true) {
+  const cargarDatos = async () => {
     try {
       const [rServicios, rClientes, rTecnicos] = await Promise.all([
         obtenerServicios(),
@@ -40,42 +33,31 @@ export default function Servicios() {
       ]);
 
       if (!rServicios.ok || !rClientes.ok || !rTecnicos.ok) {
-        if (mostrarError) {
-          mostrarMensaje("No se pudieron cargar los datos.", "error");
-        }
-        return false;
+        setMensaje("No se pudieron cargar los datos.");
+        return;
       }
 
       setServicios(rServicios.datos.servicios || []);
       setClientes(rClientes.datos.clientes || []);
       setTecnicos(rTecnicos.datos.tecnicos || []);
-
-      return true;
-    } catch (error) {
-      console.error("Error al cargar servicios:", error);
-
-      if (mostrarError) {
-        mostrarMensaje("No fue posible conectar con el servidor.", "error");
-      }
-
-      return false;
+    } catch {
+      setMensaje("No fue posible conectar con el servidor.");
     }
-  }
+  };
 
   useEffect(() => {
     cargarDatos();
   }, []);
 
-  function manejarCambio(e) {
+  const manejarCambio = (e) => {
     const { name, value } = e.target;
-
     setFormulario((anterior) => ({
       ...anterior,
       [name]: value
     }));
-  }
+  };
 
-  function limpiarFormulario() {
+  const limpiarFormulario = () => {
     setFormulario({
       cliente_id: "",
       tecnico_id: "",
@@ -84,9 +66,9 @@ export default function Servicios() {
       fecha: ""
     });
     setEditando(null);
-  }
+  };
 
-  async function guardarServicio(e) {
+  const guardarServicio = async (e) => {
     e.preventDefault();
 
     if (
@@ -96,7 +78,7 @@ export default function Servicios() {
       !formulario.estado ||
       !formulario.fecha
     ) {
-      mostrarMensaje("Completa todos los campos obligatorios.", "error");
+      setMensaje("Completa todos los campos obligatorios.");
       return;
     }
 
@@ -115,41 +97,30 @@ export default function Servicios() {
         : await crearServicio(servicio);
 
       if (!respuesta.ok) {
-        mostrarMensaje(
+        setMensaje(
           respuesta.datos?.mensaje ||
           respuesta.datos?.message ||
-          "No fue posible guardar el servicio.",
-          "error"
+          "No fue posible guardar el servicio."
         );
         return;
       }
 
-      const texto = editando
-        ? "Servicio actualizado correctamente."
-        : "Servicio registrado correctamente.";
+      setMensaje(
+        editando
+          ? "Servicio actualizado correctamente."
+          : "Servicio registrado correctamente."
+      );
 
       limpiarFormulario();
-
-      const actualizado = await cargarDatos(false);
-
-      mostrarMensaje(
-        actualizado
-          ? texto
-          : `${texto} No se pudo actualizar la tabla; vuelve a cargar los datos.`,
-        actualizado ? "exito" : "info"
-      );
-    } catch (error) {
-      console.error("Error al guardar servicio:", error);
-      mostrarMensaje(
-        "No fue posible conectar con el servidor. Inténtalo de nuevo.",
-        "error"
-      );
+      await cargarDatos();
+    } catch {
+      setMensaje("No fue posible conectar con el servidor.");
     } finally {
       setCargando(false);
     }
-  }
+  };
 
-  function prepararEdicion(servicio) {
+  const prepararEdicion = (servicio) => {
     setEditando(servicio.id);
 
     setFormulario({
@@ -160,10 +131,10 @@ export default function Servicios() {
       fecha: String(servicio.fecha || "").slice(0, 10)
     });
 
-    mostrarMensaje("Estás editando el servicio seleccionado.", "info");
-  }
+    setMensaje("Editando el servicio seleccionado.");
+  };
 
-  async function borrarServicio(id) {
+  const borrarServicio = async (id) => {
     if (!window.confirm("¿Deseas eliminar este servicio?")) {
       return;
     }
@@ -174,11 +145,10 @@ export default function Servicios() {
       const respuesta = await eliminarServicio(id);
 
       if (!respuesta.ok) {
-        mostrarMensaje(
+        setMensaje(
           respuesta.datos?.mensaje ||
           respuesta.datos?.message ||
-          "No fue posible eliminar el servicio.",
-          "error"
+          "No fue posible eliminar el servicio."
         );
         return;
       }
@@ -187,83 +157,22 @@ export default function Servicios() {
         limpiarFormulario();
       }
 
-      const actualizado = await cargarDatos(false);
-
-      mostrarMensaje(
-        actualizado
-          ? "Servicio eliminado correctamente."
-          : "Servicio eliminado, pero no se pudo actualizar la tabla.",
-        actualizado ? "exito" : "info"
-      );
-    } catch (error) {
-      console.error("Error al eliminar servicio:", error);
-      mostrarMensaje(
-        "No fue posible conectar con el servidor.",
-        "error"
-      );
+      setMensaje("Servicio eliminado correctamente.");
+      await cargarDatos();
+    } catch {
+      setMensaje("No fue posible conectar con el servidor.");
     } finally {
       setCargando(false);
     }
-  }
-
-  const coloresMensaje = {
-    exito: {
-      fondo: "#e6f4ea",
-      texto: "#176b35",
-      borde: "#2e8540"
-    },
-    error: {
-      fondo: "#fdecec",
-      texto: "#a32121",
-      borde: "#c62828"
-    },
-    info: {
-      fondo: "#eaf2ff",
-      texto: "#174ea6",
-      borde: "#3973c6"
-    }
   };
 
-  const estiloMensaje = coloresMensaje[tipoMensaje];
-
   return (
-    <main style={{
-      padding: "24px",
-      maxWidth: "1100px",
-      margin: "auto",
-      fontFamily: "Arial, sans-serif"
-    }}>
+    <div className="dashboard">
       <h1>Módulo de Servicios</h1>
-      <p>Registra y administra los servicios técnicos.</p>
+      <p>Registra, consulta, edita y elimina servicios.</p>
 
-      {mensaje && (
-        <div
-          role={tipoMensaje === "error" ? "alert" : "status"}
-          aria-live="polite"
-          style={{
-            padding: "14px",
-            margin: "16px 0",
-            borderLeft: `5px solid ${estiloMensaje.borde}`,
-            borderRadius: "6px",
-            background: estiloMensaje.fondo,
-            color: estiloMensaje.texto,
-            fontWeight: "bold"
-          }}
-        >
-          {mensaje}
-        </div>
-      )}
-
-      <section style={{
-        padding: "20px",
-        marginBottom: "24px",
-        background: "#fff",
-        border: "1px solid #ddd",
-        borderRadius: "10px"
-      }}>
-        <h2>{editando ? "Editar servicio" : "Registrar servicio"}</h2>
-
-        <form onSubmit={guardarServicio}>
+      <form onSubmit={guardarServicio}>
+        <div>
           <label htmlFor="cliente_id">Cliente</label>
           <br />
           <select
@@ -281,9 +190,9 @@ export default function Servicios() {
               </option>
             ))}
           </select>
+        </div>
 
-          <br /><br />
-
+        <div>
           <label htmlFor="tecnico_id">Técnico</label>
           <br />
           <select
@@ -301,24 +210,25 @@ export default function Servicios() {
               </option>
             ))}
           </select>
+        </div>
 
-          <br /><br />
-
+        <div>
           <label htmlFor="descripcion">Descripción</label>
           <br />
           <input
             id="descripcion"
             name="descripcion"
+            type="text"
             value={formulario.descripcion}
             onChange={manejarCambio}
             maxLength={255}
-            required
             placeholder="Describe el servicio"
+            required
             disabled={cargando}
           />
+        </div>
 
-          <br /><br />
-
+        <div>
           <label htmlFor="estado">Estado</label>
           <br />
           <select
@@ -333,9 +243,9 @@ export default function Servicios() {
             <option value="En proceso">En proceso</option>
             <option value="Completado">Completado</option>
           </select>
+        </div>
 
-          <br /><br />
-
+        <div>
           <label htmlFor="fecha">Fecha</label>
           <br />
           <input
@@ -347,98 +257,83 @@ export default function Servicios() {
             required
             disabled={cargando}
           />
+        </div>
 
-          <br /><br />
+        <br />
 
-          <button type="submit" disabled={cargando}>
-            {cargando
-              ? "Procesando..."
-              : editando
-                ? "Guardar cambios"
-                : "Registrar servicio"}
+        <button type="submit" disabled={cargando}>
+          {cargando
+            ? "Procesando..."
+            : editando
+              ? "Guardar cambios"
+              : "Registrar servicio"}
+        </button>
+
+        {editando !== null && (
+          <button
+            type="button"
+            onClick={limpiarFormulario}
+            disabled={cargando}
+          >
+            Cancelar
           </button>
+        )}
+      </form>
 
-          {editando && (
-            <button
-              type="button"
-              onClick={limpiarFormulario}
-              disabled={cargando}
-              style={{ marginLeft: "8px" }}
-            >
-              Cancelar edición
-            </button>
-          )}
-        </form>
-      </section>
+      {mensaje && <p role="status">{mensaje}</p>}
 
       <h2>Servicios registrados</h2>
 
-      <div style={{ overflowX: "auto" }}>
-        <table style={{
-          width: "100%",
-          borderCollapse: "collapse"
-        }}>
-          <thead>
-            <tr>
-              {["ID", "Cliente", "Técnico", "Descripción", "Estado", "Fecha", "Acciones"].map((titulo) => (
-                <th
-                  key={titulo}
-                  style={{
-                    padding: "10px",
-                    border: "1px solid #ddd",
-                    background: "#f1f3f5",
-                    textAlign: "left"
-                  }}
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Cliente</th>
+            <th>Técnico</th>
+            <th>Descripción</th>
+            <th>Estado</th>
+            <th>Fecha</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {servicios.map((servicio) => (
+            <tr key={servicio.id}>
+              <td>{servicio.id}</td>
+              <td>{servicio.cliente_nombre}</td>
+              <td>{servicio.tecnico_nombre}</td>
+              <td>{servicio.descripcion}</td>
+              <td>{servicio.estado}</td>
+              <td>{String(servicio.fecha).slice(0, 10)}</td>
+              <td>
+                <button
+                  type="button"
+                  onClick={() => prepararEdicion(servicio)}
+                  disabled={cargando}
                 >
-                  {titulo}
-                </th>
-              ))}
+                  Editar
+                </button>{" "}
+                <button
+                  type="button"
+                  onClick={() => borrarServicio(servicio.id)}
+                  disabled={cargando}
+                >
+                  Eliminar
+                </button>
+              </td>
             </tr>
-          </thead>
+          ))}
 
-          <tbody>
-            {servicios.map((servicio) => (
-              <tr key={servicio.id}>
-                <td style={celda}>{servicio.id}</td>
-                <td style={celda}>{servicio.cliente_nombre}</td>
-                <td style={celda}>{servicio.tecnico_nombre}</td>
-                <td style={celda}>{servicio.descripcion}</td>
-                <td style={celda}>{servicio.estado}</td>
-                <td style={celda}>{String(servicio.fecha).slice(0, 10)}</td>
-                <td style={celda}>
-                  <button
-                    type="button"
-                    onClick={() => prepararEdicion(servicio)}
-                    disabled={cargando}
-                  >
-                    Editar
-                  </button>{" "}
-                  <button
-                    type="button"
-                    onClick={() => borrarServicio(servicio.id)}
-                    disabled={cargando}
-                  >
-                    Eliminar
-                  </button>
-                </td>
-              </tr>
-            ))}
-
-            {servicios.length === 0 && (
-              <tr>
-                <td colSpan="7" style={celda}>
-                  No hay servicios registrados.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </main>
+          {servicios.length === 0 && (
+            <tr>
+              <td colSpan="7">No hay servicios registrados.</td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
-const celda = {
-  padding: "10px",
-  border: "1px solid #ddd"
-};
+export default Servicios;

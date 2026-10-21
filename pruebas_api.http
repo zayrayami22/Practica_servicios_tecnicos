@@ -1,0 +1,22 @@
+
+### Consultar servicios
+GET http://127.0.0.1:5000/api/servicios
+
+### Consultar clientes
+GET http://127.0.0.1:5000/api/clientes
+
+### Consultar tecnicos
+GET http://127.0.0.1:5000/api/tecnicos
+
+
+### Registrar servicio de prueba
+POST http://127.0.0.1:5000/api/servicios
+Content-Type: application/json
+
+{
+  "cliente_id": 1,
+  "tecnico_id": 3,
+  "descripcion": "Prueba Etapa 10",
+  "estado": "Pendiente",
+  "fecha": "2026-10-20"
+}

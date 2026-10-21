@@ -1,3 +1,21 @@
+﻿# Entorno virtual de Python
 venv/
+.venv/
+
+# Archivos temporales de Python
 __pycache__/
-*.pyc
+*.py[cod]
+
+# Variables de entorno y credenciales
+.env
+.env.*
+!.env.example
+
+# Dependencias y compilación de React
+frontend/node_modules/
+frontend/dist/
+
+# Archivos de configuración local
+.vscode/
+.DS_Store
+Thumbs.db

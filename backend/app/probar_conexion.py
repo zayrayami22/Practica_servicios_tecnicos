@@ -1,14 +1,12 @@
-from config.conexion import conectar
+
+from app.config.conexion import conectar
+
 
 conexion = conectar()
 
-if conexion:
-    print("==============================")
+if conexion is not None:
     print("CONEXIÓN EXITOSA")
-    print("Base de datos: tecnico")
-    print("==============================")
+    print("Base de datos:", conexion.database)
     conexion.close()
 else:
-    print("==============================")
-    print("ERROR DE CONEXIÓN")
-    print("==============================")
+    print("NO SE PUDO CONECTAR A LA BASE DE DATOS")
