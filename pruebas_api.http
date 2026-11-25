@@ -16,7 +16,7 @@ Content-Type: application/json
 {
   "cliente_id": 1,
   "tecnico_id": 3,
-  "descripcion": "Prueba Etapa 10",
+  "descripcion": "",
   "estado": "Pendiente",
   "fecha": "2026-10-20"
 }

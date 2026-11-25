@@ -1,10 +1,8 @@
-
 import os
 import mysql.connector
 from mysql.connector import Error
 from dotenv import load_dotenv
 
-# Cargar el archivo .env ubicado en la carpeta backend
 RUTA_ENV = os.path.join(
     os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
     ".env"
@@ -15,15 +13,25 @@ HOST = os.getenv("DB_HOST", "localhost")
 USER = os.getenv("DB_USER", "root")
 PASSWORD = os.getenv("DB_PASSWORD", "")
 DATABASE = os.getenv("DB_NAME", "tecnico")
+PORT = int(os.getenv("DB_PORT", "3306"))
+
+RUTA_CA = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+    "isrgrootx1.pem"
+)
 
 
 def conectar():
     try:
         conexion = mysql.connector.connect(
             host=HOST,
+            port=PORT,
             user=USER,
             password=PASSWORD,
             database=DATABASE,
+            ssl_ca=RUTA_CA,
+            ssl_verify_cert=True,
+            ssl_verify_identity=True,
             use_pure=True
         )
 
@@ -33,10 +41,7 @@ def conectar():
 
         conexion.close()
 
-    except Error:
-        print(
-            "Error al conectar con la base de datos. "
-            "Revisa la configuración."
-        )
+    except Error as e:
+        print("Error al conectar con la base de datos:", e)
 
     return None

@@ -1,4 +1,4 @@
-const API_URL = "http://127.0.0.1:5000";
+const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:5000";
 
 // LOGIN
 export async function login(username, password) {
@@ -97,7 +97,7 @@ export async function eliminarCliente(id) {
 }
 
 
-const API_TECNICOS = "http://127.0.0.1:5000/api/tecnicos";
+const API_TECNICOS = `${API_URL}/api/tecnicos`;
 
 export async function obtenerTecnicos() {
   const r = await fetch(API_TECNICOS);

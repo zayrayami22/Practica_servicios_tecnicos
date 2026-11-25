@@ -13,3 +13,5 @@ dist/
 .vscode/
 .DS_Store
 Thumbs.db
+.env
+backend/.env

@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import {
   obtenerClientes,
@@ -25,7 +26,7 @@ function Clientes() {
       } else {
         setMensaje("No se pudieron obtener los clientes");
       }
-    } catch (error) {
+    } catch {
       setMensaje("Error al conectar con el servidor");
     }
   };
@@ -39,29 +40,24 @@ function Clientes() {
     }
 
     try {
-      let resultado;
-
-      if (editandoId === null) {
-        resultado = await crearCliente(nombre);
-      } else {
-        resultado = await actualizarCliente(editandoId, nombre);
-      }
+      const eraEdicion = editandoId !== null;
+      const resultado = eraEdicion
+        ? await actualizarCliente(editandoId, nombre.trim())
+        : await crearCliente(nombre.trim());
 
       if (resultado.ok && resultado.datos.success) {
         setNombre("");
         setEditandoId(null);
-
-        if (editandoId === null) {
-          setMensaje("Cliente creado correctamente");
-        } else {
-          setMensaje("Cliente actualizado correctamente");
-        }
-
+        setMensaje(
+          eraEdicion
+            ? "Cliente actualizado correctamente"
+            : "Cliente creado correctamente"
+        );
         await cargarClientes();
       } else {
         setMensaje(resultado.datos.message || "No se pudo guardar el cliente");
       }
-    } catch (error) {
+    } catch {
       setMensaje("Error al conectar con el servidor");
     }
   };
@@ -79,13 +75,7 @@ function Clientes() {
   };
 
   const borrarCliente = async (id) => {
-    const confirmar = window.confirm(
-      "¿Estás seguro de que deseas eliminar este cliente?"
-    );
-
-    if (!confirmar) {
-      return;
-    }
+    if (!window.confirm("¿Deseas eliminar este cliente?")) return;
 
     try {
       const resultado = await eliminarCliente(id);
@@ -96,65 +86,107 @@ function Clientes() {
       } else {
         setMensaje(resultado.datos.message || "No se pudo eliminar el cliente");
       }
-    } catch (error) {
+    } catch {
       setMensaje("Error al conectar con el servidor");
     }
   };
 
   return (
-    <div className="dashboard">
-      <h1>Clientes</h1>
+    <main style={{ padding: "20px", maxWidth: "900px" }}>
+      <h1 style={{ margin: "0 0 16px" }}>Clientes</h1>
 
-      <form onSubmit={guardarCliente}>
+      <form
+        onSubmit={guardarCliente}
+        style={{
+          display: "flex",
+          gap: "10px",
+          alignItems: "center",
+          marginBottom: "12px",
+          flexWrap: "wrap"
+        }}
+      >
         <input
           type="text"
           placeholder="Nombre del cliente"
           value={nombre}
           onChange={(e) => setNombre(e.target.value)}
+          required
+          style={{
+            padding: "9px",
+            minWidth: "220px",
+            flex: "1"
+          }}
         />
 
-        <button type="submit">
-          {editandoId === null ? "Agregar cliente" : "Guardar cambios"}
+        <button type="submit" style={{ padding: "9px 14px" }}>
+          {editandoId === null ? "Agregar" : "Guardar"}
         </button>
 
         {editandoId !== null && (
-          <button type="button" onClick={cancelarEdicion}>
+          <button
+            type="button"
+            onClick={cancelarEdicion}
+            style={{ padding: "9px 14px" }}
+          >
             Cancelar
           </button>
         )}
       </form>
 
-      {mensaje && <p className="error">{mensaje}</p>}
+      {mensaje && (
+        <p role="status" style={{ margin: "8px 0 14px" }}>
+          {mensaje}
+        </p>
+      )}
 
-      <table>
+      <table
+        style={{
+          width: "100%",
+          borderCollapse: "collapse",
+          textAlign: "left"
+        }}
+      >
         <thead>
           <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Acciones</th>
+            <th style={estiloCelda}>ID</th>
+            <th style={estiloCelda}>Nombre</th>
+            <th style={estiloCelda}>Acciones</th>
           </tr>
         </thead>
 
         <tbody>
           {clientes.map((cliente) => (
             <tr key={cliente.id}>
-              <td>{cliente.id}</td>
-              <td>{cliente.nombre}</td>
-              <td>
-                <button onClick={() => editarCliente(cliente)}>
-                  Editar
-                </button>
-
-                <button onClick={() => borrarCliente(cliente.id)}>
-                  Eliminar
-                </button>
+              <td style={estiloCelda}>{cliente.id}</td>
+              <td style={estiloCelda}>{cliente.nombre}</td>
+              <td style={estiloCelda}>
+                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                  <button type="button" onClick={() => editarCliente(cliente)}>
+                    Editar
+                  </button>
+                  <button type="button" onClick={() => borrarCliente(cliente.id)}>
+                    Eliminar
+                  </button>
+                </div>
               </td>
             </tr>
           ))}
+          {clientes.length === 0 && (
+            <tr>
+              <td colSpan="3" style={estiloCelda}>
+                No hay clientes registrados.
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
-    </div>
+    </main>
   );
 }
+
+const estiloCelda = {
+  padding: "10px 8px",
+  borderBottom: "1px solid #dddddd"
+};
 
 export default Clientes;

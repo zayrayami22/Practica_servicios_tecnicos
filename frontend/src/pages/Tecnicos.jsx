@@ -44,25 +44,27 @@ function Tecnicos() {
     setCargando(true);
 
     try {
+      const eraEdicion = editandoId !== null;
       const datos = {
         nombre: nombre.trim(),
         especialidad: especialidad.trim()
       };
 
-      const r = editandoId
+      const r = eraEdicion
         ? await actualizarTecnico(editandoId, datos)
         : await crearTecnico(datos);
 
-      setMensaje(
-        r.datos.message ||
-        (r.ok ? "Operación realizada" : "No se pudo guardar")
-      );
-
-      if (r.ok) {
+      if (r.ok && r.datos.success) {
         setNombre("");
         setEspecialidad("");
         setEditandoId(null);
+        setMensaje(
+          r.datos.message ||
+          (eraEdicion ? "Técnico actualizado correctamente" : "Técnico registrado correctamente")
+        );
         await cargarTecnicos();
+      } else {
+        setMensaje(r.datos.message || "No se pudo guardar el técnico");
       }
     } catch {
       setMensaje("Error de conexión con Flask");
@@ -86,24 +88,17 @@ function Tecnicos() {
   };
 
   const eliminar = async (id) => {
-    if (!window.confirm("¿Deseas eliminar este técnico?")) {
-      return;
-    }
+    if (!window.confirm("¿Deseas eliminar este técnico?")) return;
 
     try {
       const r = await eliminarTecnico(id);
 
-      setMensaje(
-        r.datos.message ||
-        (r.ok ? "Técnico eliminado" : "No se pudo eliminar")
-      );
-
-      if (r.ok) {
-        if (editandoId === id) {
-          cancelarEdicion();
-        }
-
+      if (r.ok && r.datos.success) {
+        if (editandoId === id) cancelarEdicion();
+        setMensaje(r.datos.message || "Técnico eliminado correctamente");
         await cargarTecnicos();
+      } else {
+        setMensaje(r.datos.message || "No se pudo eliminar el técnico");
       }
     } catch {
       setMensaje("Error de conexión con Flask");
@@ -111,12 +106,20 @@ function Tecnicos() {
   };
 
   return (
-    <div className="dashboard">
-      <h1>Módulo de Técnicos</h1>
-      <p>Registra, consulta, edita y elimina técnicos.</p>
+    <main style={{ padding: "20px", maxWidth: "900px" }}>
+      <h1 style={{ margin: "0 0 16px" }}>Técnicos</h1>
 
-      <form onSubmit={guardar}>
-        <div>
+      <form
+        onSubmit={guardar}
+        style={{
+          display: "flex",
+          gap: "10px",
+          alignItems: "end",
+          marginBottom: "12px",
+          flexWrap: "wrap"
+        }}
+      >
+        <div style={{ flex: "1", minWidth: "180px" }}>
           <label htmlFor="nombre-tecnico">Nombre</label>
           <input
             id="nombre-tecnico"
@@ -125,10 +128,11 @@ function Tecnicos() {
             onChange={(e) => setNombre(e.target.value)}
             placeholder="Nombre del técnico"
             required
+            style={{ display: "block", boxSizing: "border-box", width: "100%", padding: "9px", marginTop: "4px" }}
           />
         </div>
 
-        <div>
+        <div style={{ flex: "1", minWidth: "180px" }}>
           <label htmlFor="especialidad-tecnico">Especialidad</label>
           <input
             id="especialidad-tecnico"
@@ -137,71 +141,72 @@ function Tecnicos() {
             onChange={(e) => setEspecialidad(e.target.value)}
             placeholder="Ej. Computadoras"
             required
+            style={{ display: "block", boxSizing: "border-box", width: "100%", padding: "9px", marginTop: "4px" }}
           />
         </div>
 
-        <button type="submit" disabled={cargando}>
-          {cargando
-            ? "Guardando..."
-            : editandoId
-              ? "Actualizar técnico"
-              : "Registrar técnico"}
+        <button type="submit" disabled={cargando} style={{ padding: "9px 14px" }}>
+          {cargando ? "Guardando..." : editandoId !== null ? "Guardar" : "Agregar"}
         </button>
 
         {editandoId !== null && (
-          <button type="button" onClick={cancelarEdicion}>
+          <button type="button" onClick={cancelarEdicion} style={{ padding: "9px 14px" }}>
             Cancelar
           </button>
         )}
       </form>
 
-      {mensaje && <p role="status">{mensaje}</p>}
+      {mensaje && (
+        <p role="status" style={{ margin: "8px 0 14px" }}>
+          {mensaje}
+        </p>
+      )}
 
-      <h2>Lista de técnicos</h2>
-
-      <table>
+      <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
         <thead>
           <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Especialidad</th>
-            <th>Acciones</th>
+            <th style={estiloCelda}>ID</th>
+            <th style={estiloCelda}>Nombre</th>
+            <th style={estiloCelda}>Especialidad</th>
+            <th style={estiloCelda}>Acciones</th>
           </tr>
         </thead>
 
         <tbody>
           {tecnicos.map((tecnico) => (
             <tr key={tecnico.id}>
-              <td>{tecnico.id}</td>
-              <td>{tecnico.nombre}</td>
-              <td>{tecnico.especialidad}</td>
-              <td>
-                <button
-                  type="button"
-                  onClick={() => editar(tecnico)}
-                >
-                  Editar
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => eliminar(tecnico.id)}
-                >
-                  Eliminar
-                </button>
+              <td style={estiloCelda}>{tecnico.id}</td>
+              <td style={estiloCelda}>{tecnico.nombre}</td>
+              <td style={estiloCelda}>{tecnico.especialidad}</td>
+              <td style={estiloCelda}>
+                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                  <button type="button" onClick={() => editar(tecnico)}>
+                    Editar
+                  </button>
+                  <button type="button" onClick={() => eliminar(tecnico.id)}>
+                    Eliminar
+                  </button>
+                </div>
               </td>
             </tr>
           ))}
 
           {tecnicos.length === 0 && (
             <tr>
-              <td colSpan="4">No hay técnicos registrados.</td>
+              <td colSpan="4" style={estiloCelda}>
+                No hay técnicos registrados.
+              </td>
             </tr>
           )}
         </tbody>
       </table>
-    </div>
+    </main>
   );
 }
+
+const estiloCelda = {
+  padding: "10px 8px",
+  borderBottom: "1px solid #dddddd"
+};
 
 export default Tecnicos;

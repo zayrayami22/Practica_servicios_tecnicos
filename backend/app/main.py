@@ -7,7 +7,9 @@ from app.routes.servicios import servicios_bp
 
 app = Flask(__name__)
 
-CORS(app, origins=["http://localhost:5173"])
+CORS(app, origins=[
+    "http://localhost:5173"
+])
 
 app.register_blueprint(login_bp)
 app.register_blueprint(clientes_bp)

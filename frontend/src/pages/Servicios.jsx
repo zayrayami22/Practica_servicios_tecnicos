@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import {
   obtenerServicios,
@@ -92,7 +93,7 @@ function Servicios() {
         tecnico_id: Number(formulario.tecnico_id)
       };
 
-      const respuesta = editando
+      const respuesta = editando !== null
         ? await actualizarServicio(editando, servicio)
         : await crearServicio(servicio);
 
@@ -106,7 +107,7 @@ function Servicios() {
       }
 
       setMensaje(
-        editando
+        editando !== null
           ? "Servicio actualizado correctamente."
           : "Servicio registrado correctamente."
       );
@@ -166,15 +167,54 @@ function Servicios() {
     }
   };
 
-  return (
-    <div className="dashboard">
-      <h1>Módulo de Servicios</h1>
-      <p>Registra, consulta, edita y elimina servicios.</p>
+  const estiloCampo = {
+    display: "flex",
+    flexDirection: "column",
+    gap: "5px",
+    flex: "1",
+    minWidth: "150px"
+  };
 
-      <form onSubmit={guardarServicio}>
-        <div>
+  const estiloEntrada = {
+    padding: "9px",
+    border: "1px solid #ccc",
+    borderRadius: "4px",
+    fontSize: "14px",
+    width: "100%",
+    boxSizing: "border-box"
+  };
+
+  const estiloBoton = {
+    padding: "9px 12px",
+    border: "1px solid #ccc",
+    borderRadius: "4px",
+    background: "#f5f5f5",
+    cursor: "pointer",
+    fontSize: "14px"
+  };
+
+  return (
+    <div style={{ padding: "20px", maxWidth: "1100px" }}>
+      <h1 style={{ marginTop: 0, marginBottom: "8px" }}>
+        Servicios
+      </h1>
+
+      <p style={{ marginTop: 0, marginBottom: "16px" }}>
+        Registra, consulta, edita y elimina servicios.
+      </p>
+
+      <form
+        onSubmit={guardarServicio}
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          alignItems: "end",
+          gap: "10px",
+          marginBottom: "12px"
+        }}
+      >
+        <div style={estiloCampo}>
           <label htmlFor="cliente_id">Cliente</label>
-          <br />
           <select
             id="cliente_id"
             name="cliente_id"
@@ -182,8 +222,9 @@ function Servicios() {
             onChange={manejarCambio}
             required
             disabled={cargando}
+            style={estiloEntrada}
           >
-            <option value="">Selecciona un cliente</option>
+            <option value="">Seleccionar cliente</option>
             {clientes.map((cliente) => (
               <option key={cliente.id} value={cliente.id}>
                 {cliente.nombre}
@@ -192,9 +233,8 @@ function Servicios() {
           </select>
         </div>
 
-        <div>
+        <div style={estiloCampo}>
           <label htmlFor="tecnico_id">Técnico</label>
-          <br />
           <select
             id="tecnico_id"
             name="tecnico_id"
@@ -202,8 +242,9 @@ function Servicios() {
             onChange={manejarCambio}
             required
             disabled={cargando}
+            style={estiloEntrada}
           >
-            <option value="">Selecciona un técnico</option>
+            <option value="">Seleccionar técnico</option>
             {tecnicos.map((tecnico) => (
               <option key={tecnico.id} value={tecnico.id}>
                 {tecnico.nombre}
@@ -212,9 +253,8 @@ function Servicios() {
           </select>
         </div>
 
-        <div>
+        <div style={{ ...estiloCampo, minWidth: "190px" }}>
           <label htmlFor="descripcion">Descripción</label>
-          <br />
           <input
             id="descripcion"
             name="descripcion"
@@ -222,15 +262,15 @@ function Servicios() {
             value={formulario.descripcion}
             onChange={manejarCambio}
             maxLength={255}
-            placeholder="Describe el servicio"
+            placeholder="Descripción del servicio"
             required
             disabled={cargando}
+            style={estiloEntrada}
           />
         </div>
 
-        <div>
+        <div style={{ ...estiloCampo, minWidth: "130px", flex: "0.7" }}>
           <label htmlFor="estado">Estado</label>
-          <br />
           <select
             id="estado"
             name="estado"
@@ -238,6 +278,7 @@ function Servicios() {
             onChange={manejarCambio}
             required
             disabled={cargando}
+            style={estiloEntrada}
           >
             <option value="Pendiente">Pendiente</option>
             <option value="En proceso">En proceso</option>
@@ -245,9 +286,8 @@ function Servicios() {
           </select>
         </div>
 
-        <div>
+        <div style={{ ...estiloCampo, minWidth: "145px", flex: "0.7" }}>
           <label htmlFor="fecha">Fecha</label>
-          <br />
           <input
             id="fecha"
             name="fecha"
@@ -256,17 +296,16 @@ function Servicios() {
             onChange={manejarCambio}
             required
             disabled={cargando}
+            style={estiloEntrada}
           />
         </div>
 
-        <br />
-
-        <button type="submit" disabled={cargando}>
+        <button type="submit" disabled={cargando} style={estiloBoton}>
           {cargando
             ? "Procesando..."
-            : editando
+            : editando !== null
               ? "Guardar cambios"
-              : "Registrar servicio"}
+              : "Registrar"}
         </button>
 
         {editando !== null && (
@@ -274,64 +313,106 @@ function Servicios() {
             type="button"
             onClick={limpiarFormulario}
             disabled={cargando}
+            style={estiloBoton}
           >
             Cancelar
           </button>
         )}
       </form>
 
-      {mensaje && <p role="status">{mensaje}</p>}
+      {mensaje && (
+        <p role="status" style={{ margin: "10px 0" }}>
+          {mensaje}
+        </p>
+      )}
 
-      <h2>Servicios registrados</h2>
+      <h2 style={{ marginTop: "20px", marginBottom: "10px" }}>
+        Lista de servicios
+      </h2>
 
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Cliente</th>
-            <th>Técnico</th>
-            <th>Descripción</th>
-            <th>Estado</th>
-            <th>Fecha</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          {servicios.map((servicio) => (
-            <tr key={servicio.id}>
-              <td>{servicio.id}</td>
-              <td>{servicio.cliente_nombre}</td>
-              <td>{servicio.tecnico_nombre}</td>
-              <td>{servicio.descripcion}</td>
-              <td>{servicio.estado}</td>
-              <td>{String(servicio.fecha).slice(0, 10)}</td>
-              <td>
-                <button
-                  type="button"
-                  onClick={() => prepararEdicion(servicio)}
-                  disabled={cargando}
-                >
-                  Editar
-                </button>{" "}
-                <button
-                  type="button"
-                  onClick={() => borrarServicio(servicio.id)}
-                  disabled={cargando}
-                >
-                  Eliminar
-                </button>
-              </td>
-            </tr>
-          ))}
-
-          {servicios.length === 0 && (
+      <div style={{ overflowX: "auto" }}>
+        <table
+          style={{
+            width: "100%",
+            borderCollapse: "collapse",
+            textAlign: "left"
+          }}
+        >
+          <thead>
             <tr>
-              <td colSpan="7">No hay servicios registrados.</td>
+              {["ID", "Cliente", "Técnico", "Descripción", "Estado", "Fecha", "Acciones"].map((titulo) => (
+                <th
+                  key={titulo}
+                  style={{
+                    padding: "10px 8px",
+                    borderBottom: "2px solid #ccc"
+                  }}
+                >
+                  {titulo}
+                </th>
+              ))}
             </tr>
-          )}
-        </tbody>
-      </table>
+          </thead>
+
+          <tbody>
+            {servicios.map((servicio) => (
+              <tr key={servicio.id}>
+                {[
+                  servicio.id,
+                  servicio.cliente_nombre,
+                  servicio.tecnico_nombre,
+                  servicio.descripcion,
+                  servicio.estado,
+                  String(servicio.fecha || "").slice(0, 10)
+                ].map((dato, indice) => (
+                  <td
+                    key={indice}
+                    style={{
+                      padding: "10px 8px",
+                      borderBottom: "1px solid #ddd"
+                    }}
+                  >
+                    {dato}
+                  </td>
+                ))}
+
+                <td style={{ padding: "10px 8px", borderBottom: "1px solid #ddd" }}>
+                  <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                    <button
+                      type="button"
+                      onClick={() => prepararEdicion(servicio)}
+                      disabled={cargando}
+                      style={estiloBoton}
+                    >
+                      Editar
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => borrarServicio(servicio.id)}
+                      disabled={cargando}
+                      style={estiloBoton}
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+
+            {servicios.length === 0 && (
+              <tr>
+                <td
+                  colSpan={7}
+                  style={{ padding: "10px 8px", borderBottom: "1px solid #ddd" }}
+                >
+                  No hay servicios registrados.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
